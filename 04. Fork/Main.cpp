@@ -4,12 +4,21 @@
 
 #include "constant.h"
 
+#ifdef TEST_ZOMBIE_SIGNAL
+#include <signal.h>
+// signal handle
+// TODO: what does (int sig) mean?
+void signal_handle_sigchld(int sig);
+#endif
+
 int main(int argint, char *argpt[])
 {
 	pid_t pid = fork();
 
 	if(0 == pid)
 	{
+		printf("child Sleep\n");
+		sleep(3);
 		printf("child process's pid didn't define a value\n");
 		// or use return here
 		_exit(10);
@@ -24,7 +33,7 @@ int main(int argint, char *argpt[])
 #ifdef TEST_ZOMBIE_WAIT
 		{
 			int status, wait_process, ret;
-			printf("Waiting...\n");
+			printf("Waiting...wait() will stuck here\n");
 			wait_process = wait(&status);
 			ret = WEXITSTATUS(status);
 			printf("Wait with wait_process: %d, status: %d, ret: %d\n",
@@ -35,9 +44,37 @@ int main(int argint, char *argpt[])
 				printf("Wait with no exit\n");
 			}
 		}
-#endif /* TEST_ZOMBIE_WAIT */
+#elif (defined TEST_ZOMBIE_WAITPID)
+		{
+			const int maxWaitTimes = 5;
+			const int errorCode = -1;
+			int status = 0, ret = 0;
+			for (int i = 0; i < maxWaitTimes; ++i) {
+				sleep(1);
+				ret = waitpid(pid, &status, WNOHANG);
+				printf("Waitpid, times: %d, ret(cpid): %d, status: %d, WEXITSTATUS: %d,"
+						"WIFEXITED:%d\n",
+						i, ret, status, WEXITSTATUS(status), WIFEXITED(status));
+			}
+		}
+#elif (defined TEST_ZOMBIE_SIGNAL)
+		{
+			signal(SIGCHLD, signal_handle_sigchld);
+			printf("parent sleep 15s...\n");
+			sleep(15);
+			printf("parent wakeup! (system will wake parent process forced to "
+					"call handle func)\n");
+		}
+#endif
 
 #endif /* TEST_ZOMBIE */
 	}
 	return 0;
 }
+
+#ifdef TEST_ZOMBIE_SIGNAL
+// signal handle
+void signal_handle_sigchld(int sig) {
+	printf("%s: recv sig: %d\n", __func__, sig);
+}
+#endif
