@@ -31,3 +31,13 @@ standard output
 > parent wakeup! (system will wake parent process forced to call handle func)
 
 #### #define TEST_ZOMBIE_SIGACTION
+
+> This is parent process, child pid: 297
+> child Sleep
+> Process zombie process
+> parent sigaction {.sa_flags = 0}
+> parent sleep 15s...
+> ^[[Achild process's pid didn't define a value
+> signal_handle_sigchld: recv sig: 17
+> parent wakeup! (system will wake parent process forced to call handle func)
+> parent sigaction {.sa_flags = 0}

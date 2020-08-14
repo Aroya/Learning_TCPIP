@@ -4,7 +4,7 @@
 
 #include "constant.h"
 
-#ifdef TEST_ZOMBIE_SIGNAL
+#if (defined TEST_ZOMBIE_SIGNAL) || (defined TEST_ZOMBIE_SIGACTION)
 #include <signal.h>
 // signal handle
 // TODO: what does (int sig) mean?
@@ -65,14 +65,28 @@ int main(int argint, char *argpt[])
 			printf("parent wakeup! (system will wake parent process forced to "
 					"call handle func)\n");
 		}
+#elif (defined TEST_ZOMBIE_SIGACTION)
 #endif
-
+		{
+			struct sigaction act;
+			struct sigaction oldact;
+			act.sa_handler = signal_handle_sigchld;
+			sigemptyset(&act.sa_mask);
+			act.sa_flags = 0;
+			printf("parent sigaction {.sa_flags = %x}\n", act.sa_flags);
+			sigaction(SIGCHLD, &act, &oldact);
+			printf("parent sleep 15s...\n");
+			sleep(15);
+			printf("parent wakeup! (system will wake parent process forced to "
+					"call handle func)\n");
+			printf("parent sigaction {.sa_flags = %x}\n", act.sa_flags);
+		}
 #endif /* TEST_ZOMBIE */
 	}
 	return 0;
 }
 
-#ifdef TEST_ZOMBIE_SIGNAL
+#if (defined TEST_ZOMBIE_SIGNAL) || (defined TEST_ZOMBIE_SIGACTION)
 // signal handle
 void signal_handle_sigchld(int sig) {
 	printf("%s: recv sig: %d\n", __func__, sig);
