@@ -6,6 +6,9 @@
 
 #include "instant.h"
 
+#define TEST_WLTB
+#define TEST_WLTB_SLEEP_TO_READ
+
 /**
  * Usage ./client <server_addr> <server_port>
  */
